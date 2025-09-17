@@ -38,7 +38,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     xx-verify --static /go/bin/ksops
 
 # # Stage 2: Final image
-FROM --platform=${BUILDPLATFORM} gcr.io/distroless/base AS runtime
+FROM --platform=${BUILDPLATFORM} gcr.io/distroless/base-debian12 AS runtime
 LABEL org.opencontainers.image.source="https://github.com/viaduct-ai/kustomize-sops"
 
 USER nonroot
@@ -54,3 +54,16 @@ COPY --link --from=base --chown=root:root --chmod=755 /usr/bin/git /usr/bin/git
 COPY --link --from=builder --chown=root:root --chmod=755 /go/bin/ksops /usr/local/bin/ksops
 COPY --link --from=builder --chown=root:root --chmod=755 /go/bin/ksops /usr/local/bin/kustomize-sops
 COPY --link --from=builder --chown=root:root --chmod=755 /go/bin/kustomize /usr/local/bin/kustomize
+
+# Binaries needed
+COPY --from=docker.io/debian:12 /bin/sh \
+     /bin/ls \
+     /bin/mv /bin/
+
+# Libraries needed
+COPY --from=docker.io/debian:12 /lib/x86_64-linux-gnu/libc.so.6 \
+     /lib/x86_64-linux-gnu/libacl.so.1 \
+     /lib/x86_64-linux-gnu/libattr.so.1 \
+     /lib/x86_64-linux-gnu/libcap.so.2 \
+     /lib/x86_64-linux-gnu/libpcre2-8.so.0 \
+     /lib/x86_64-linux-gnu/libselinux.so.1 /lib/x86_64-linux-gnu/
